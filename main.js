@@ -1,25 +1,8 @@
-// const player1 = {
-//     nameHero: 'Scorpion',
-//     hp: 100,
-//     img: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
-//     weapon: ['knife', 'gun'],
-//     attack() {
-//         console.log(`${this.nameHero} Fight...`)
-//     }
-// }
-
-// const player2 = {
-//     nameHero: 'Kitana',
-//     hp: 90,
-//     img: 'http://reactmarathon-api.herokuapp.com/assets/kitana.gif',
-//     weapon: ['knife', 'gun'],
-//     attack() {
-//         console.log(`${this.nameHero} Fight...`)
-//     }
-// }
-
+const arenas = document.querySelector('.arenas');
+const randomButton = document.querySelector('.button');
 class Player {
-    constructor(name, hp, img, weapon) {
+    constructor(playerNumber, name, hp, img, weapon) {
+        this.playerNumber = playerNumber;
         this.name = name;
         this.hp = hp;
         this.img = img;
@@ -30,41 +13,87 @@ class Player {
     }
 }
 
-const player1 = new Player('Scorpion', 
+const player1 = new Player( 1,
+                            'Scorpion', 
                             100, 
                             'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif', 
                             ['knife', 'gun']);
-const player2 = new Player('Kitana', 
-                            90, 
+const player2 = new Player( 2,
+                            'Kitana', 
+                            100, 
                             'http://reactmarathon-api.herokuapp.com/assets/kitana.gif', 
                             ['knife', 'gun']);
 
-function createPlayer(selector, player) {
-    const arenas = document.querySelector('.arenas');
-    const player1 = document.createElement('div');
-    const progressbar = document.createElement('div');
-    const life = document.createElement('div');
-    const name = document.createElement('div');
-    const character = document.createElement('div');
-    const playerImg = document.createElement('img');
+function createElem(tag, className) {
+    const tagElement = document.createElement(tag);
+        if (className) {
+            tagElement.classList.add(className);
+        }
     
-    player1.classList.add(selector);
-    progressbar.classList.add('progressbar');
-    life.classList.add('life');
-    name.classList.add('name');
-    character.classList.add('character');
-    life.style.width = "100%";
+    return tagElement;
+}
+
+function createPlayer(player) {
+    const gamePlayer = createElem('div', `player${player.playerNumber}`);
+    const progressbar = createElem('div', 'progressbar');
+    const life = createElem('div', 'life');
+    const name = createElem('div', 'name');
+    const character = createElem('div', 'character');
+    const playerImg = createElem('img');
+    
+    life.style.width = `${player.hp}%`;
     name.innerHTML = player.name;
-    life.innerHTML = player.hp;
     playerImg.src = `${player.img}`;
     
     progressbar.appendChild(life);
     progressbar.appendChild(name);
     character.appendChild(playerImg);
-    player1.appendChild(progressbar);
-    player1.appendChild(character);
-    arenas.appendChild(player1);
+    gamePlayer.appendChild(progressbar);
+    gamePlayer.appendChild(character);
+
+    return gamePlayer;
 }
 
-createPlayer('player1',  player1);
-createPlayer('player2',  player2 );
+function playerWin(name) {
+    const winTitle = createElem('div', 'loseTitle');
+    winTitle.innerHTML = `${name} win!`;
+    return winTitle;
+} 
+
+function gameOver() {
+    if (player1.hp < 0 && player2.hp > 0) {
+        player1.hp = 0; 
+        randomButton.disabled = true;
+        arenas.appendChild(playerWin(player2.name));
+    }
+    if (player1.hp > 0 && player2.hp < 0) {
+        player2.hp = 0; 
+        randomButton.disabled = true;
+        arenas.appendChild(playerWin(player1.name));
+    } 
+    if (player1.hp < 0 && player2.hp < 0) {
+        let nobody = 'Nobody wins!';
+        player1.hp = 0; 
+        player2.hp = 0; 
+        randomButton.disabled = true;
+        arenas.appendChild(playerWin(nobody));
+    } 
+}
+
+function changePlayer(player) {
+    const playerLife = document.querySelector(`.player${player.playerNumber} .life`);
+    player.hp -= Math.ceil(Math.random() * 20);
+    playerLife.style.width = player.hp <= 0 ? `0%` : `${player.hp}%`;
+    if (player.hp < 0) {
+        gameOver();
+    }
+    
+}
+
+randomButton.addEventListener('click', () => {
+    changePlayer(player1);
+    changePlayer(player2);
+});
+
+arenas.appendChild(createPlayer(player1));
+arenas.appendChild(createPlayer(player2));
